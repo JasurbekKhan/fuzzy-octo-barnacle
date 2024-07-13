@@ -1,67 +1,871 @@
-import pyautogui as pag
-import time
-import pyperclip
-import subprocess
+<?xml version="1.0"?>
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.1.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.1.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_1_0.xsd">
+	<version>1</version>
+	<condition>
+		<name>VerificarUrgencia</name>
+		<metadata>
+			<![CDATA[{"xy":[178,4]}]]>
+		</metadata>
+		<script>
+			<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
 
-# Define the coordinates and use the `actions` list
-actions = [
-    (610, 531, 4),  # next
-    (286, 459, 4),  # Accept terms
-    (610, 531, 4),  # next
-    (610, 531, 4),  # next
-    (610, 531, 4),  # next
-    (610, 531, 4),  # install
-    (387, 253, 10),  # type pass
-    (387, 298, 4),  # type pass
-    (564, 598, 4),  # ok
-    (610, 531, 4),  # finish
-    (849, 746, 10),  # open litemanager
-    (522, 388, 4),  # click connect
-    (460, 321, 4),  # right click (select all)
-    (506, 387, 4),  # click copy
-    (397, 437, 4),  # open options
-    (394, 286, 4),  # click auto connect
-    (510, 312, 4),  # change timeout interval
-    (521, 502, 4),  # click okey
-]
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
 
-# Wait for a few seconds to give time to focus on the target application
-time.sleep(10)
-password = "TheDisa1a"
-timeout = "10"
-    
-for x, y, duration in actions:
-    if (x, y, duration) == (387, 253, 10):
-        pag.click(x, y, duration=duration)
-        pag.typewrite(password)
-    elif (x, y, duration) == (387, 298, 4):
-        pag.click(x, y, duration=duration)
-        pag.typewrite(password)
-    elif (x, y, duration) == (460, 321, 4):
-        pag.rightClick(x, y, duration=duration)
-    elif (x, y, duration) == (610, 531, 4):
-        pag.click(x, y, duration=duration)
-        cmd = r'"C:\Program Files (x86)\LiteManager Pro - Server\ROMServer.exe" /start'
-        subprocess.run(cmd, shell=True)
-    elif (x, y, duration) == (510, 312, 4):
-        pag.click(x, y, duration=duration)
-        pag.press('backspace')  # Press backspace once
-        pag.press('backspace')  # Press backspace again
-        pag.typewrite(timeout)
-    else:
-        pag.click(x, y, duration=duration)
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
 
-def save_echo_to_batch(file_path, echo_text):
-    with open(file_path, 'a') as file:
-        file.write(f'\necho {echo_text}')
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
 
-def save_command():
-    clipboard_text = pyperclip.paste()
-    password_echo = 'LiteManager Password : TheDisa1a'  
-    save_echo_to_batch('show.bat', f'LiteManager ID: {clipboard_text}')
-    save_echo_to_batch('show.bat', password_echo)
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		returnValue = _workflowService.validateUrgency(workflowContext);
+    } else {
+        returnValue = "Review"
+    }
+}
+catch(Exception e) {
+        returnValue = "Review";
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Urgente</name>
+				<target>Urgente</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Review</name>
+				<target>Análise</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Verificar Comentário</name>
+		<metadata>
+			<![CDATA[{"xy":[704,239]}]]>
+		</metadata>
+		<script>
+			<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
 
-if __name__ == "__main__":
-    save_command()
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
 
-print("Done , Log in Credintials is below")
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		returnValue = _workflowService.validateDone(workflowContext);
+    } else {
+        returnValue = "Comentário Inválido";
+    }
+}
+catch(Exception e) {
+        returnValue = "Comentário Inválido";
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Done</name>
+				<target>Concluído</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Comentário Inválido</name>
+				<target>Comentário Inválido</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>Validar Comentário</name>
+		<metadata>
+			<![CDATA[{"xy":[161,252]}]]>
+		</metadata>
+		<script>
+			<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		returnValue = _workflowService.validateDone(workflowContext);
+    } else {
+        returnValue = "Comentário Inválido";
+    }
+}
+catch(Exception e) {
+        returnValue = "Comentário Inválido";
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Done</name>
+				<target>Existem Pendências</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Comentário Inválido</name>
+				<target>Comentario Análise</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<condition>
+		<name>VerificarReclassificar</name>
+		<metadata>
+			<![CDATA[{"xy":[49,100]}]]>
+		</metadata>
+		<script>
+			<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		returnValue = _workflowService.verifyReportReclassification(workflowContext);
+    } else {
+        returnValue = "VerificarUrgencia";
+    }
+}
+catch(Exception e) {
+        returnValue = "VerificarUrgencia";
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+		</script>
+		<script-language>groovy</script-language>
+		<transitions>
+			<transition>
+				<name>Reclassificado</name>
+				<target>Existem Pendências</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>VerificarUrgencia</name>
+				<target>VerificarUrgencia</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</condition>
+	<state>
+		<name>Criado</name>
+		<metadata>
+			<![CDATA[{"xy":[14,14]}]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Criado</name>
+				<description></description>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("pending"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<initial>true</initial>
+		<transitions>
+			<transition>
+				<name>Validar Reclassificação</name>
+				<target>VerificarReclassificar</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Análise</name>
+		<metadata>
+			<![CDATA[{"xy":[306,118]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Notificar Revisor</name>
+				<description>
+					<![CDATA[Um relato de segurança foi atribuído a você]]>
+				</description>
+				<template>
+					<![CDATA[
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<#assign serviceContext = staticUtil["com.liferay.portal.service.ServiceContextThreadLocal"].getServiceContext()><#assign themeDisplay = serviceContext.getThemeDisplay() />
+					<#assign portalURL = serviceContext.portalURL!"">
+					<#assign title = serviceContext.title_pt_BR!"">
+					<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Novo relato de segurança urgente</title></head><body style="margin: 0; padding: 0;"><table style="max-width: 550px;" align="center"><tr><td>
+          structureName: ${serviceContext.structureName!""}
+          templateId: ${serviceContext.templateId!""}
+          classpk: ${serviceContext.classpk!""}
+          entryId: ${serviceContext.entryId!""}
+          articleurl: ${serviceContext.articleurl!""}
+        </td><td><img src='${portalURL}/o/klabindw-theme/images/klabin-icons/email-header.png" style="display: block; width: 100%;'/></td></tr><tr><td style="padding: 10px 35px; height: 337px; vertical-align: top;"><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">Prezados(as),</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">Um novo relato número <b>${title}</b> com status <span style="color: #AF272F;">URGENTE</span> foi criado.</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 0;">Para mais detalhes acesse:</p><a href="http://relato.seguranca.kablin.com.br" target="_blank" style="font-weight: bold;font-family: Arial; font-size: 18px; line-height: 24px; color: #009E59; text-decoration: none;">relato.seguranca.kablin.com.br</a></td></tr><tr><td><img src='${portalURL}/o/klabindw-theme/images/klabin-icons/email-rodape.png" style="display: block;'/></td></tr></table></body></html>]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<scripted-recipient>
+						<script>
+							<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		Map<String, Serializable> result = _workflowService.assignUserByHistoryOrDefault(workflowContext);
+		User userResult = result.get("user");
+		if(userResult != null){
+			user = userResult
+		}
+		else{
+			roles = new ArrayList<>();
+			roles.add(result.get("roles"));
+		}
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+						</script>
+						<script-language>groovy</script-language>
+					</scripted-recipient>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+		<transitions>
+			<transition>
+				<name>Análise</name>
+				<target>Em análise</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Comentário Inválido</name>
+		<metadata>
+			<![CDATA[{"xy":[520,62]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Comentário Obrigatorio Notificação</name>
+				<description>
+					<![CDATA[Notifica o usuário que o comentário obrigatório não foi preenchido. Não redireciona para a atividade ao clicar na notificação.]]>
+				</description>
+				<template>
+					<![CDATA[Notificação: Para concluir a atividade, é necessário adicionar um comentário.]]>
+				</template>
+				<template-language>text</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<scripted-recipient>
+						<script>
+							<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		user = _workflowService.findLastTaskUser(workflowContext);
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+						</script>
+						<script-language>groovy</script-language>
+					</scripted-recipient>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+		<transitions>
+			<transition>
+				<name>Comentário Inválido</name>
+				<target>Em Andamento</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Concluído</name>
+		<metadata>
+			<![CDATA[{"terminal":true,"xy":[717,474]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Relato Concluido</name>
+				<description>
+					<![CDATA[Seu relato de segurança foi concluído.]]>
+				</description>
+				<template>
+					<![CDATA[
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					
+					<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Document</title></head><body style="margin: 0; padding: 0;"><table align="center" style="max-width: 550px; border-spacing: 0;"><tr><td><img src="./header.png" style="display: block; width: 100%;"/></td></tr><tr><td style="padding: 10px 35px; height: 448px; vertical-align: top;"><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">
+            Prezado(a) <b>Sergio Piza</b>,
+          </p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">
+            O relato número <b>234896</b> foi concluído.
+          </p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 0px" ><b>Conclusão:</b></p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px; margin-top:0;" >${taskComments}</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 0px" ><b>Responsável:</b></p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px; margin-top:0;" >${userName}</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 0;">Para mais detalhes acesse:</p><a href="http://relato.seguranca.kablin.com.br" target="_blank" style="font-weight: bold;font-family: Arial; font-size: 18px; line-height: 24px; color: #009E59; text-decoration: none;">relato.seguranca.kablin.com.br</a></td></tr><tr><td><img src="./rodape.png" style="display: block"/></td></tr></table></body></html>]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user/>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+	</state>
+	<state>
+		<name>Comentario Análise</name>
+		<metadata>
+			<![CDATA[{"xy":[174,129]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Comentário Invalido</name>
+				<description>
+					<![CDATA[]]>
+				</description>
+				<template>
+					<![CDATA[Notificação: Comentário Obrigatório. Para enviar pendências para o relator, por favor comente quais são as pendências.]]>
+				</template>
+				<template-language>text</template-language>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<scripted-recipient>
+						<script>
+							<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		Map<String, Serializable> result = _workflowService.assignUserByHistoryOrDefault(workflowContext);
+		User userResult = result.get("user");
+		if(userResult != null){
+			user = userResult
+		}
+		else{
+			roles = new ArrayList<>();
+			roles.add(result.get("roles"));
+		}
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+						</script>
+						<script-language>groovy</script-language>
+					</scripted-recipient>
+				</recipients>
+				<execution-type>onEntry</execution-type>
+			</notification>
+		</actions>
+		<transitions>
+			<transition>
+				<name>Comentário Inválido</name>
+				<target>Em análise</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Cancelar</name>
+		<metadata>
+			<![CDATA[{"xy":[315,455]}]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Cancelar Relato</name>
+				<description></description>
+				<script>
+					<![CDATA[import com.liferay.portal.kernel.workflow.WorkflowStatusManagerUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+WorkflowStatusManagerUtil.updateStatus(WorkflowConstants.getLabelStatus("denied"), workflowContext);]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onEntry</execution-type>
+			</action>
+		</actions>
+		<transitions>
+			<transition>
+				<name>Cancelado</name>
+				<target>Cancelado</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>Relato Cancelado</name>
+		<metadata>
+			<![CDATA[{"terminal":true,"xy":[641,460]}]]>
+		</metadata>
+	</state>
+	<task>
+		<name>Urgente</name>
+		<metadata>
+			<![CDATA[{"xy":[361,8]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Notificação Urgente</name>
+				<description>
+					<![CDATA[Um novo relato de segurança com status de "Urgente" foi criado]]>
+				</description>
+				<template>
+					<![CDATA[
+					
+					<#assign servicecontext = staticUtil["com.liferay.portal.kernel.service.ServiceContextThreadLocal"].getServiceContext()>
+					<#assign portalURL = servicecontext.portalURL()!"">
+					<#assign title = serviceContext.title_pt_BR!"">
+					<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Novo relato de segurança urgente</title></head><body style="margin: 0; padding: 0;"><table style="max-width: 550px;" align="center"><tr><td><img src='$portalURL/o/klabindw-theme/images/klabin-icons/email-header.png" style="display: block; width: 100%;'/></td></tr><tr><td style="padding: 10px 35px; height: 337px; vertical-align: top;"><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">Prezados(as),</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 20px">Um novo relato número <b>$title</b> com status <span style="color: #AF272F;">URGENTE</span> foi criado.</p><p style="font-family: Arial; font-size: 18px; line-height: 24px; color: #6A6A6A; margin-bottom: 0;">Para mais detalhes acesse:</p><a href="http://relato.seguranca.kablin.com.br" target="_blank" style="font-weight: bold;font-family: Arial; font-size: 18px; line-height: 24px; color: #009E59; text-decoration: none;">relato.seguranca.kablin.com.br</a></td></tr><tr><td><img src='$portalURL/o/klabindw-theme/images/klabin-icons/email-rodape.png" style="display: block;'/></td></tr></table></body></html>]]>
+				</template>
+				<template-language>freemarker</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<assignees/>
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		Map<String, Serializable> result = _workflowService.assignUserByHistoryOrDefault(workflowContext);
+		User userResult = result.get("user");
+		if(userResult != null){
+			user = userResult
+		}
+		else{
+			roles = new ArrayList<>();
+			roles.add(result.get("roles"));
+		}
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Revisar</name>
+				<target>Análise</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Em análise</name>
+		<metadata>
+			<![CDATA[{"xy":[294,244]}]]>
+		</metadata>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		Map<String, Serializable> result = _workflowService.assignUserByHistoryOrDefault(workflowContext);
+		User userResult = result.get("user");
+		if(userResult != null){
+			user = userResult
+		}
+		else{
+			roles = new ArrayList<>();
+			roles.add(result.get("roles"));
+		}
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Em Progresso</name>
+				<target>Em Andamento</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Existem Pendências</name>
+				<target>Validar Comentário</target>
+				<default>false</default>
+			</transition>
+			<transition>
+				<name>Cancelar</name>
+				<target>Cancelar</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Existem Pendências</name>
+		<metadata>
+			<![CDATA[{"xy":[41,245]}]]>
+		</metadata>
+		<actions>
+			<notification>
+				<name>Notificação Pendências</name>
+				<description>
+					<![CDATA[Notificação para avisar o relator que existem pendências.]]>
+				</description>
+				<template>
+					<![CDATA[Existem pendências a serem resolvidas no relato de segurança.]]>
+				</template>
+				<template-language>text</template-language>
+				<notification-type>email</notification-type>
+				<notification-type>user-notification</notification-type>
+				<recipients receptionType="to">
+					<user/>
+				</recipients>
+				<execution-type>onAssignment</execution-type>
+			</notification>
+		</actions>
+		<assignments>
+			<user/>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Pendências Resolvidas</name>
+				<target>Em análise</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Cancelar</name>
+				<target>Cancelar</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Em Andamento</name>
+		<metadata>
+			<![CDATA[{"xy":[499,244]}]]>
+		</metadata>
+		<assignments>
+			<user/>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Finalizar</name>
+				<target>Verificar Comentário</target>
+				<default>true</default>
+			</transition>
+			<transition>
+				<name>Cancelar</name>
+				<target>Cancelar</target>
+				<default>false</default>
+			</transition>
+		</transitions>
+	</task>
+	<task>
+		<name>Cancelado</name>
+		<metadata>
+			<![CDATA[{"xy":[478,446]}]]>
+		</metadata>
+		<actions>
+			<action>
+				<name>Finalizar Cancelamento</name>
+				<description>Tarefa que ao atribuir, finaliza o cancelamento de relato.</description>
+				<script>
+					<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+        _workflowService.completeTaskAndSingalNext(workflowContext, "Cancelado");
+    } else {
+
+    }
+}
+catch(Exception e) {
+
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+				<execution-type>onAssignment</execution-type>
+			</action>
+		</actions>
+		<assignments>
+			<scripted-assignment>
+				<script>
+					<![CDATA[import org.osgi.util.tracker.ServiceTracker;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.FrameworkUtil;
+import br.com.klabin.sso.workflow.securityreport.api.WorkflowSecurityReportAPI;
+import com.liferay.portal.scripting.groovy.internal.GroovyExecutor;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+
+
+roles = null;
+user = null;
+ServiceTracker<WorkflowSecurityReportAPI,WorkflowSecurityReportAPI> st;
+
+try {
+    Bundle bundle = FrameworkUtil.getBundle(GroovyExecutor.class);
+
+    st = new ServiceTracker(bundle.getBundleContext(), WorkflowSecurityReportAPI.class, null);
+    st.open();
+
+    if (!st.isEmpty()) {
+        WorkflowSecurityReportAPI _workflowService = st.getService();
+		Map<String, Serializable> result = _workflowService.assignUserByHistoryOrDefault(workflowContext);
+		User userResult = result.get("user");
+		if(userResult != null){
+			user = userResult
+		}
+		else{
+			roles = new ArrayList<>();
+			roles.add(result.get("roles"));
+		}
+    } else {
+    }
+}
+catch(Exception e) {
+}
+finally {
+    if (st != null) {
+        st.close();
+    }
+}]]>
+				</script>
+				<script-language>groovy</script-language>
+			</scripted-assignment>
+		</assignments>
+		<transitions>
+			<transition>
+				<name>Cancelado</name>
+				<target>Relato Cancelado</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</task>
+</workflow-definition>
